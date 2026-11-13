@@ -177,7 +177,7 @@ export function FeatureHeader() {
     }
 
     let cancel = false
-    Field.load('/engine.wasm?v=0.1.9')
+    Field.load('/engine.wasm?v=0.1.10')
       .then(async (loaded) => {
         if (cancel) return
         field = loaded
@@ -230,7 +230,7 @@ export function FeatureHeader() {
             type="button"
             aria-label="Replay pesty-sh"
             data-rust-mark
-            className="pointer-events-auto relative w-[min(92vw,56rem)] bg-transparent"
+            className="pointer-events-auto relative w-[min(92vw,77rem)] bg-transparent"
             style={{ aspectRatio: '80 / 21' }}
             onClick={() => {
               if (replayedRef.current) {
