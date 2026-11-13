@@ -160,11 +160,8 @@ export const rustHeaderBoot = `
       var markBox = boxOf(mark, origin, scale)
       field.api.engine_pointer(field.ptr, cursor.x, cursor.y, cursor.inside)
       field.api.engine_clear_quiet(field.ptr)
-      var quiet = root.querySelectorAll('[data-rust-nav], [data-rust-quiet]')
-      for (var i = 0; i < quiet.length; i += 1) {
-        var box = boxOf(quiet[i], origin, scale)
-        field.api.engine_push_quiet(field.ptr, box.x, box.y, box.w, box.h)
-      }
+      var navBox = boxOf(nav, origin, scale)
+      field.api.engine_push_quiet(field.ptr, navBox.x, navBox.y, navBox.w, navBox.h)
       field.api.engine_frame(field.ptr, now, markBox.x, markBox.y, markBox.w, markBox.h, reduced ? 1 : 0)
       var pix = field.api.engine_pixels(field.ptr)
       var len = field.api.engine_byte_len(field.ptr)

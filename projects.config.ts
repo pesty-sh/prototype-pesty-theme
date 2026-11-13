@@ -6,8 +6,7 @@
  * 2. Add an entry to `projects` to pin its order and override copy / install channels.
  *
  * Data (description, language, latest release + downloads, README) is pulled from
- * GitHub and cached for `revalidateSeconds`. Set GITHUB_TOKEN to raise API limits
- * and to read private repos. A private README can also live in `readmes/<repo>.md`.
+ * GitHub and cached for `revalidateSeconds`. Set GITHUB_TOKEN to raise API limits.
  */
 
 export type InstallChannel = 'brew' | 'apt'

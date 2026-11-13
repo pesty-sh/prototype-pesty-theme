@@ -86,7 +86,7 @@ export function FeatureHeader() {
     let lastDraw = 0
     let reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let cursor = { x: 0, y: 0, inside: false }
-    const quiet = [nav, ...root.querySelectorAll<HTMLElement>('[data-rust-quiet]')]
+    const quiet = [nav]
 
     const dpr = () => Math.min(window.devicePixelRatio || 1, 2)
     const boxOf = (el: Element, origin: DOMRect, scale: number) => {
@@ -252,7 +252,7 @@ export function FeatureHeader() {
             </span>
           </button>
         </div>
-        <div data-rust-quiet className="pointer-events-auto px-3 pb-3 md:px-4">
+        <div className="pointer-events-auto px-3 pb-3 md:px-4">
           <Tile
             active
             labelledBy="header-pitch"
