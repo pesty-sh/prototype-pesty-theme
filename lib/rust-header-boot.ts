@@ -220,7 +220,7 @@ export const rustHeaderBoot = `
       if (field) field.api.engine_replay(field.ptr, performance.now())
     })
 
-    loadWasm('/engine.wasm?v=0.1.6').then(function (instance) {
+    loadWasm('/engine.wasm?v=0.1.7').then(function (instance) {
       var api = instance.exports
       field = { api: api, ptr: api.engine_new() }
       setHex(api, field.ptr, 0, '#c900c4')
