@@ -90,8 +90,9 @@ export const seo = {
     },
     'prototype-pesty-header': {
       title: 'Rust pixel header',
-      description: 'A Rust and WebAssembly pixel header: pointer, motion, and the pesty.sh wordmark.',
-      keywords: ['WebAssembly', 'pixel header', 'Rust wasm'],
+      description:
+        'A pixel header drawn by a Rust program in the browser. The cursor hoovers speckles, a click plays the next appear, and a wander fires trails into little icons.',
+      keywords: ['WebAssembly', 'pixel header', 'Rust wasm', 'pixel animation'],
     },
     'prototype-warehouse-picker-tool': {
       title: '3D warehouse picker',

@@ -133,6 +133,7 @@ export const rustHeaderBoot = `
 
     var field = null
     var fieldSize = { w: 0, h: 0 }
+    var replayed = 0
     var cursor = { x: 0, y: 0, inside: 0 }
     var running = true
     var raf = 0
@@ -149,6 +150,8 @@ export const rustHeaderBoot = `
         canvas.width = width
         canvas.height = height
         ctx.imageSmoothingEnabled = false
+        ctx.fillStyle = '#fafafa'
+        ctx.fillRect(0, 0, width, height)
       }
       if (fieldSize.w !== width || fieldSize.h !== height) {
         field.api.engine_resize(field.ptr, width, height)
@@ -157,8 +160,11 @@ export const rustHeaderBoot = `
       var markBox = boxOf(mark, origin, scale)
       field.api.engine_pointer(field.ptr, cursor.x, cursor.y, cursor.inside)
       field.api.engine_clear_quiet(field.ptr)
-      var navBox = boxOf(nav, origin, scale)
-      field.api.engine_push_quiet(field.ptr, navBox.x, navBox.y, navBox.w, navBox.h)
+      var quiet = root.querySelectorAll('[data-rust-nav], [data-rust-quiet]')
+      for (var i = 0; i < quiet.length; i += 1) {
+        var box = boxOf(quiet[i], origin, scale)
+        field.api.engine_push_quiet(field.ptr, box.x, box.y, box.w, box.h)
+      }
       field.api.engine_frame(field.ptr, now, markBox.x, markBox.y, markBox.w, markBox.h, reduced ? 1 : 0)
       var pix = field.api.engine_pixels(field.ptr)
       var len = field.api.engine_byte_len(field.ptr)
@@ -207,13 +213,17 @@ export const rustHeaderBoot = `
     window.addEventListener('pointerup', function (event) {
       if (!field) return
       var point = local(event)
-      field.api.engine_pointer_up(field.ptr, point.x, point.y, event.timeStamp)
+      replayed = field.api.engine_pointer_up(field.ptr, point.x, point.y, event.timeStamp)
     })
     mark.addEventListener('click', function () {
+      if (replayed) {
+        replayed = 0
+        return
+      }
       if (field) field.api.engine_replay(field.ptr, performance.now())
     })
 
-    loadWasm('/engine.wasm').then(function (instance) {
+    loadWasm('/engine.wasm?v=0.1.6').then(function (instance) {
       var api = instance.exports
       field = { api: api, ptr: api.engine_new() }
       setHex(api, field.ptr, 0, '#c900c4')

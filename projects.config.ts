@@ -6,7 +6,8 @@
  * 2. Add an entry to `projects` to pin its order and override copy / install channels.
  *
  * Data (description, language, latest release + downloads, README) is pulled from
- * GitHub and cached for `revalidateSeconds`. Set GITHUB_TOKEN to raise API limits.
+ * GitHub and cached for `revalidateSeconds`. Set GITHUB_TOKEN to raise API limits
+ * and to read private repos. A private README can also live in `readmes/<repo>.md`.
  */
 
 export type InstallChannel = 'brew' | 'apt'
@@ -61,7 +62,8 @@ export const projects: ProjectConfig[] = [
   },
   {
     repo: 'prototype-pesty-header',
-    tagline: 'Pixel header tutorial: pointer, motion, and the pesty.sh wordmark.',
+    tagline:
+      'A web page with a pixel header. The letters, the mouse glow, and the little icons are drawn by a Rust program that runs in the browser.',
     homepage: 'https://prototype-pesty-header.vercel.app/',
   },
   {

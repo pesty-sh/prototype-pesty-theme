@@ -56,6 +56,7 @@ export function FeatureHeader() {
   const navRef = useRef<HTMLDivElement>(null)
   const markRef = useRef<HTMLButtonElement>(null)
   const fieldRef = useRef<Field | null>(null)
+  const replayedRef = useRef(false)
   const [engine, setEngine] = useState<'svg' | 'wasm' | 'glyphs'>('svg')
 
   useEffect(() => {
@@ -85,7 +86,7 @@ export function FeatureHeader() {
     let lastDraw = 0
     let reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let cursor = { x: 0, y: 0, inside: false }
-    const quiet = [nav]
+    const quiet = [nav, ...root.querySelectorAll<HTMLElement>('[data-rust-quiet]')]
 
     const dpr = () => Math.min(window.devicePixelRatio || 1, 2)
     const boxOf = (el: Element, origin: DOMRect, scale: number) => {
@@ -167,11 +168,11 @@ export function FeatureHeader() {
     const onUp = (event: PointerEvent) => {
       if (!field) return
       const point = local(event)
-      field.pointerUp(point.x, point.y, event.timeStamp)
+      replayedRef.current = field.pointerUp(point.x, point.y, event.timeStamp)
     }
 
     let cancel = false
-    Field.load('/engine.wasm')
+    Field.load('/engine.wasm?v=0.1.6')
       .then(async (loaded) => {
         if (cancel) return
         field = loaded
@@ -234,7 +235,13 @@ export function FeatureHeader() {
             data-rust-mark
             className="pointer-events-auto relative w-[min(62vw,28rem)] bg-transparent"
             style={{ aspectRatio: '80 / 21' }}
-            onClick={() => fieldRef.current?.replay(performance.now())}
+            onClick={() => {
+              if (replayedRef.current) {
+                replayedRef.current = false
+                return
+              }
+              fieldRef.current?.replay(performance.now())
+            }}
           >
             <span data-rust-fallback className="absolute inset-0">
               {engine === 'wasm' ? null : engine === 'glyphs' ? (
@@ -245,7 +252,7 @@ export function FeatureHeader() {
             </span>
           </button>
         </div>
-        <div className="pointer-events-auto px-3 pb-3 md:px-4">
+        <div data-rust-quiet className="pointer-events-auto px-3 pb-3 md:px-4">
           <Tile
             active
             labelledBy="header-pitch"

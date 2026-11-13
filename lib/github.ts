@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { projects as configured, siteConfig, type InstallChannel } from '@/projects.config'
+import { markdownToHtml } from '@/lib/readme-markdown'
 
 type GhRepo = {
   name: string
@@ -78,8 +81,18 @@ export async function getLatestRelease(repo: string) {
   return gh<Release>(`/repos/${siteConfig.owner}/${repo}/releases/latest`)
 }
 
+function localReadmeHtml(repo: string) {
+  try {
+    const markdown = readFileSync(join(process.cwd(), 'readmes', `${repo}.md`), 'utf8')
+    return markdownToHtml(markdown)
+  } catch {
+    return null
+  }
+}
+
 export async function getReadmeHtml(repo: string) {
-  return gh<string>(`/repos/${siteConfig.owner}/${repo}/readme`, 'application/vnd.github.html')
+  const remote = await gh<string>(`/repos/${siteConfig.owner}/${repo}/readme`, 'application/vnd.github.html')
+  return remote ?? localReadmeHtml(repo)
 }
 
 function toProject(slug: string, repo: GhRepo | undefined, release: Release | null): Project {
