@@ -16,7 +16,7 @@ Engine source is the sibling repo `../rust/pesty-header`. Do not edit `engine.wa
 
 - Wanderer size, wanderer density, magnetic radius, quiet fade: `engine/src/config.rs` in the header repo, then ship the wasm.
 - Pixel scale / zoom: the wordmark `className` in `components/feature-header.tsx` only. No wasm rebuild.
-- Quiet box behind the panel: the `0.05` inset in `lib/rust-header-boot.ts` and the matching inset in `components/feature-header.tsx`. No wasm rebuild.
+- Quiet box behind the panel: `data-rust-quiet` on the panel wrapper, inset 5% in `lib/rust-header-boot.ts` and `components/feature-header.tsx`. The tile fill stays `color-mix(in srgb, var(--background) 92%, transparent)`.
 
 Cell size is the wordmark CSS width divided by 80. A bigger wordmark zooms in. A smaller wordmark zooms out. To put N extra squares on each side of the previous box, multiply that box by `80 / (80 + 2N)`.
 

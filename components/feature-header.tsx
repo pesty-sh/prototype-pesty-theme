@@ -17,37 +17,29 @@ const CREED: [string, string][] = [
 ]
 const TITLE = 'pesty-sh'
 const FRAME_MS = 28
-const GROUND = 246
+const SIDE = 15
+const TINT = '#c900c4'
+const GROUND = '#fafafa'
+const NOISE = '#c496e6'
+const NOISE_LIT = '#ecb0f6'
 
-function tuneInk(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  mark: { x: number; y: number; w: number; h: number },
-) {
-  const image = ctx.getImageData(0, 0, width, height)
-  const data = image.data
-  const markRight = mark.x + mark.w
-  const markBottom = mark.y + mark.h
-  for (let y = 0; y < height; y++) {
-    const inMarkRow = y >= mark.y && y < markBottom
-    for (let x = 0; x < width; x++) {
-      if (inMarkRow && x >= mark.x && x < markRight) continue
-      const i = (y * width + x) * 4
-      const r = data[i]
-      const g = data[i + 1]
-      const b = data[i + 2]
-      if (r >= GROUND && g >= GROUND && b >= GROUND) continue
-      const light = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255
-      const t = Math.min(1, Math.max(0, (light - 0.18) / 0.62))
-      data[i] = 196 + (236 - 196) * t
-      data[i + 1] = 150 + (176 - 150) * t
-      data[i + 2] = 230 + (246 - 230) * t
-    }
-  }
-  ctx.putImageData(image, 0, 0)
+function markWidth(side: number) {
+  const denom = 80 + 2 * side
+  return `min(calc(92vw * 80 / ${denom}), calc(56rem * 80 / ${denom}))`
 }
-const QUIET_PAD = 0
+
+function attrNum(el: HTMLElement, name: string) {
+  const raw = el.getAttribute(name)
+  if (raw == null || raw.trim() === '') return Number.NaN
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : Number.NaN
+}
+
+function attrText(el: HTMLElement, name: string, fallback: string) {
+  const raw = el.getAttribute(name)
+  if (raw == null || raw.trim() === '') return fallback
+  return raw.trim()
+}
 
 export function FeatureHeader() {
   const rootRef = useRef<HTMLElement>(null)
@@ -68,12 +60,13 @@ export function FeatureHeader() {
     root.dataset.rustBoot = '1'
     const ctx = canvas.getContext('2d', { alpha: false })
     if (!ctx) return
+    const ground = attrText(root, 'data-rust-ground', GROUND)
     const fillWhite = () => {
       const rect = canvas.getBoundingClientRect()
       const scale = Math.min(window.devicePixelRatio || 1, 2)
       canvas.width = Math.max(1, Math.round(rect.width * scale))
       canvas.height = Math.max(1, Math.round(rect.height * scale))
-      ctx.fillStyle = '#fafafa'
+      ctx.fillStyle = ground
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
     fillWhite()
@@ -108,7 +101,7 @@ export function FeatureHeader() {
         canvas.width = width
         canvas.height = height
         ctx.imageSmoothingEnabled = false
-        ctx.fillStyle = '#fafafa'
+        ctx.fillStyle = ground
         ctx.fillRect(0, 0, canvas.width, canvas.height)
       }
       if (fieldSize.w !== width || fieldSize.h !== height) {
@@ -119,17 +112,17 @@ export function FeatureHeader() {
       if (markBox.w < 1 || markBox.h < 1) return
       field.pointer(cursor.x, cursor.y, cursor.inside)
       field.clearQuiet()
-      const pad = QUIET_PAD * scale
+      const insetAttr = attrNum(root, 'data-rust-inset')
+      const inset = Number.isFinite(insetAttr) ? insetAttr : 0.05
       for (const el of quiet) {
         const box = boxOf(el, origin, scale)
-        const inset = el.hasAttribute('data-rust-quiet') ? 0.05 : 0
-        const insetX = box.w * inset
-        const insetY = box.h * inset
-        field.pushQuiet(box.x + insetX - pad, box.y + insetY - pad, box.w - insetX * 2 + pad * 2, box.h - insetY * 2 + pad * 2)
+        const pad = el.hasAttribute('data-rust-quiet') ? inset : 0
+        const insetX = box.w * pad
+        const insetY = box.h * pad
+        field.pushQuiet(box.x + insetX, box.y + insetY, box.w - insetX * 2, box.h - insetY * 2)
       }
       field.frame(now, markBox.x, markBox.y, markBox.w, markBox.h, reduced)
       field.blit(ctx)
-      tuneInk(ctx, width, height, markBox)
     }
 
     const loop = (now: number) => {
@@ -177,13 +170,24 @@ export function FeatureHeader() {
     }
 
     let cancel = false
-    Field.load('/engine.wasm?v=0.1.12')
+    Field.load('/engine.wasm?v=0.1.14')
       .then(async (loaded) => {
         if (cancel) return
         field = loaded
         fieldRef.current = loaded
-        loaded.setHex(0, '#c900c4')
-        loaded.setHex(1, '#fafafa')
+        loaded.tune(
+          attrNum(root, 'data-rust-ball-strength'),
+          attrNum(root, 'data-rust-ball'),
+          attrNum(root, 'data-rust-magnet'),
+          attrNum(root, 'data-rust-pull'),
+          attrNum(root, 'data-rust-quiet-reach'),
+        )
+        loaded.setHex(0, attrText(root, 'data-rust-tint', TINT))
+        loaded.setHex(1, ground)
+        const noise = root.getAttribute('data-rust-noise')
+        const noiseLit = root.getAttribute('data-rust-noise-lit')
+        if (noise && noise.trim()) loaded.setHex(2, noise.trim())
+        if (noiseLit && noiseLit.trim()) loaded.setHex(3, noiseLit.trim())
         mark.style.aspectRatio = `${loaded.cols} / ${loaded.rows}`
         document.documentElement.setAttribute('data-rust-live', '1')
         setEngine('wasm')
@@ -218,7 +222,23 @@ export function FeatureHeader() {
   }, [])
 
   return (
-    <section id="rust-header" ref={rootRef} className="relative h-dvh w-full overflow-hidden bg-background" aria-label="Pesty">
+    <section
+      id="rust-header"
+      ref={rootRef}
+      className="relative h-dvh w-full overflow-hidden bg-background"
+      aria-label="Pesty"
+      data-rust-ball="12"
+      data-rust-ball-strength="0.276"
+      data-rust-magnet="13.8"
+      data-rust-pull="0.88"
+      data-rust-quiet-reach="7"
+      data-rust-inset="0.05"
+      data-rust-side={SIDE}
+      data-rust-tint={TINT}
+      data-rust-ground={GROUND}
+      data-rust-noise={NOISE}
+      data-rust-noise-lit={NOISE_LIT}
+    >
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full bg-background" aria-hidden="true" />
       <div className="pointer-events-none relative z-10 flex h-full flex-col">
         <div ref={navRef} data-rust-nav className="pointer-events-auto">
@@ -230,8 +250,8 @@ export function FeatureHeader() {
             type="button"
             aria-label="Replay pesty-sh"
             data-rust-mark
-            className="pointer-events-auto relative w-[min(calc(92vw*80/110),calc(56rem*80/110))] bg-transparent"
-            style={{ aspectRatio: '80 / 21' }}
+            className="pointer-events-auto relative bg-transparent"
+            style={{ aspectRatio: '80 / 21', width: markWidth(SIDE) }}
             onClick={() => {
               if (replayedRef.current) {
                 replayedRef.current = false

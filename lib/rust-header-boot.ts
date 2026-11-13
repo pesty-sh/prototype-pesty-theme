@@ -4,9 +4,24 @@ export const rustHeaderBoot = `
   if (window.__pestyRustHeader) return
   window.__pestyRustHeader = true
   var FRAME_MS = 28
-  var GROUND = 246
+  var TINT = '#c900c4'
+  var GROUND = '#fafafa'
+  var SIDE = 15
 
   function dpr() { return Math.min(window.devicePixelRatio || 1, 2) }
+
+  function attrNum(el, name) {
+    var raw = el.getAttribute(name)
+    if (raw == null || String(raw).trim() === '') return NaN
+    var n = Number(raw)
+    return isFinite(n) ? n : NaN
+  }
+
+  function attrText(el, name, fallback) {
+    var raw = el.getAttribute(name)
+    if (raw == null || String(raw).trim() === '') return fallback
+    return String(raw).trim()
+  }
 
   function boxOf(el, origin, scale) {
     var rect = el.getBoundingClientRect()
@@ -16,28 +31,6 @@ export const rustHeaderBoot = `
       w: rect.width * scale,
       h: rect.height * scale
     }
-  }
-
-  function tuneInk(ctx, width, height, mark) {
-    var image = ctx.getImageData(0, 0, width, height)
-    var data = image.data
-    var markRight = mark.x + mark.w
-    var markBottom = mark.y + mark.h
-    for (var y = 0; y < height; y++) {
-      var inMarkRow = y >= mark.y && y < markBottom
-      for (var x = 0; x < width; x++) {
-        if (inMarkRow && x >= mark.x && x < markRight) continue
-        var i = (y * width + x) * 4
-        var r = data[i], g = data[i + 1], b = data[i + 2]
-        if (r >= GROUND && g >= GROUND && b >= GROUND) continue
-        var light = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255
-        var t = Math.min(1, Math.max(0, (light - 0.18) / 0.62))
-        data[i] = 196 + (236 - 196) * t
-        data[i + 1] = 150 + (176 - 150) * t
-        data[i + 2] = 230 + (246 - 230) * t
-      }
-    }
-    ctx.putImageData(image, 0, 0)
   }
 
   function loadWasm(url) {
@@ -69,6 +62,11 @@ export const rustHeaderBoot = `
     var ctx = canvas.getContext('2d', { alpha: false })
     if (!ctx) return
     root.dataset.rustBoot = '1'
+    var ground = attrText(root, 'data-rust-ground', GROUND)
+    var side = attrNum(root, 'data-rust-side')
+    if (!isFinite(side) || side < 0) side = SIDE
+    var denom = 80 + 2 * side
+    mark.style.width = 'min(calc(92vw * 80 / ' + denom + '), calc(56rem * 80 / ' + denom + '))'
 
     var field = null
     var fieldSize = { w: 0, h: 0 }
@@ -91,7 +89,7 @@ export const rustHeaderBoot = `
         canvas.width = width
         canvas.height = height
         ctx.imageSmoothingEnabled = false
-        ctx.fillStyle = '#fafafa'
+        ctx.fillStyle = ground
         ctx.fillRect(0, 0, canvas.width, canvas.height)
       }
       return { origin: origin, scale: scale, width: width, height: height }
@@ -113,8 +111,10 @@ export const rustHeaderBoot = `
       for (var i = 0; i < zones.length; i += 1) {
         var box = boxOf(zones[i], sized.origin, sized.scale)
         if (zones[i].hasAttribute('data-rust-quiet')) {
-          var insetX = box.w * 0.05
-          var insetY = box.h * 0.05
+          var inset = attrNum(root, 'data-rust-inset')
+          if (!isFinite(inset)) inset = 0.05
+          var insetX = box.w * inset
+          var insetY = box.h * inset
           box.x += insetX
           box.y += insetY
           box.w -= insetX * 2
@@ -134,7 +134,6 @@ export const rustHeaderBoot = `
         var bytes = new Uint8ClampedArray(field.api.memory.buffer, pix, len)
         ctx.putImageData(new ImageData(bytes, fw, fh), 0, 0)
       }
-      tuneInk(ctx, sized.width, sized.height, markBox)
       document.documentElement.setAttribute('data-rust-live', '1')
     }
 
@@ -184,12 +183,24 @@ export const rustHeaderBoot = `
       if (field) field.api.engine_replay(field.ptr, performance.now())
     })
 
-    loadWasm('/engine.wasm?v=0.1.12').then(function (instance) {
+    loadWasm('/engine.wasm?v=0.1.14').then(function (instance) {
       if (!running || !root.isConnected) return
       var api = instance.exports
       field = { api: api, ptr: api.engine_new() }
-      setHex(api, field.ptr, 0, '#c900c4')
-      setHex(api, field.ptr, 1, '#fafafa')
+      api.engine_tune(
+        field.ptr,
+        attrNum(root, 'data-rust-ball-strength'),
+        attrNum(root, 'data-rust-ball'),
+        attrNum(root, 'data-rust-magnet'),
+        attrNum(root, 'data-rust-pull'),
+        attrNum(root, 'data-rust-quiet-reach')
+      )
+      setHex(api, field.ptr, 0, attrText(root, 'data-rust-tint', TINT))
+      setHex(api, field.ptr, 1, ground)
+      var noise = root.getAttribute('data-rust-noise')
+      var noiseLit = root.getAttribute('data-rust-noise-lit')
+      if (noise && String(noise).trim()) setHex(api, field.ptr, 2, String(noise).trim())
+      if (noiseLit && String(noiseLit).trim()) setHex(api, field.ptr, 3, String(noiseLit).trim())
       mark.style.aspectRatio = api.engine_logo_cols(field.ptr) + ' / ' + api.engine_logo_rows(field.ptr)
       var stable = 0
       var lastKey = ''

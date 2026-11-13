@@ -10,7 +10,10 @@
 // Config that crosses this file:
 // - Bools are `0` or `1`. Rust has no boolean in the wasm exports.
 // - `setHex` kind `0` is the tint. Kind `1` is the background.
+//   Kind `2` is a resting speckle. Kind `3` is a speckle under a glow.
 //   The string is at most 16 bytes (`#rrggbb` fits).
+// - `tune` replaces ball strength, ball radius, magnet radius, magnet pull,
+//   and quiet fade. A non-finite number keeps the baked constant.
 // - `setMark` writes one byte per cell. `1` is ink. `0` is empty.
 //   The size limits (1–160 columns, 8–48 rows) are checked in engine/src/lib.rs.
 
@@ -55,6 +58,7 @@ interface Exports {
   engine_logo_rows(ptr: number): number;
   engine_hex_prepare(ptr: number): number;
   engine_hex_commit(ptr: number, kind: number, len: number): number;
+  engine_tune(ptr: number, glow: number, reach: number, cells: number, pull: number, quiet: number): void;
 }
 
 export class Field {
@@ -169,6 +173,10 @@ export class Field {
     this.api.engine_mark_reset(this.ptr);
     this.cols = this.api.engine_logo_cols(this.ptr);
     this.rows = this.api.engine_logo_rows(this.ptr);
+  }
+
+  tune(glow: number, reach: number, cells: number, pull: number, quiet: number): void {
+    this.api.engine_tune(this.ptr, glow, reach, cells, pull, quiet);
   }
 
   setHex(kind: number, hex: string): boolean {

@@ -19,7 +19,7 @@ File: `engine/src/config.rs`. Rebuild with `scripts/ship-header-wasm.sh` from th
 
 `DRIFT_GLOW_DIM` (0.7) fades the ball while the pointer is strong. The ball is still a glow, not an icon.
 
-The engine package version stays 0.1.7 until someone bumps it on purpose. The site query `engine.wasm?v=0.1.12` is only a cache buster. Raise both copies together:
+The engine package version stays 0.1.7 until someone bumps it on purpose. The site query `engine.wasm?v=0.1.14` is only a cache buster. Raise both copies together:
 
 - `lib/rust-header-boot.ts` — the script that actually paints
 - `components/feature-header.tsx` — the fallback loader
@@ -34,12 +34,7 @@ These are not in `config.rs`.
 
 The base box is `min(92vw, 56rem)`. The `80/110` factor zooms out so 15 squares of the new size sit on each side of that base. Every field square uses the same cell: wordmark width / 80. Grow the wordmark to zoom in. Shrink it to zoom out. To add N squares on each side of the current box, multiply the current width by `80 / (80 + 2N)`.
 
-**Quiet box.** A `w-fit` wrapper with `data-rust-quiet` around the panel tile. The rect is that box, then inset 5% on each edge (10% less width and 10% less height), centered. The nav (`data-rust-nav`) is quiet at its own box, with no inset. Edit the `0.05` in both:
-
-- `lib/rust-header-boot.ts`
-- `components/feature-header.tsx`
-
-Do not put `data-rust-quiet` on a full-width wrapper. That blanks the field below the word.
+**Quiet box.** A `w-fit` wrapper with `data-rust-quiet` around the panel tile. The rect is that box, then inset 5% on each edge, centered. The nav (`data-rust-nav`) is quiet at its own box, with no inset. The tile fill is `color-mix(in srgb, var(--background) 92%, transparent)`. Do not put `data-rust-quiet` on a full-width wrapper. That blanks the field below the word.
 
 **Colours.** After the wasm loads, kind 0 is `#c900c4` and kind 1 is `#fafafa`. Those override the baked palette. The first paint fills the canvas `#fafafa` before the wasm arrives. Do not swap the baked word for a font raster. That restarts the appear.
 
