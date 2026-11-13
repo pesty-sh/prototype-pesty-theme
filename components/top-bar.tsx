@@ -38,7 +38,34 @@ export function HashScroll() {
   return null
 }
 
-export function TopBar({ current = 'home' }: { current?: string }) {
+export function BrandHomeLink({
+  children,
+  className = '',
+  light = false,
+}: {
+  children: React.ReactNode
+  className?: string
+  light?: boolean
+}) {
+  const pathname = usePathname()
+
+  return (
+    <Link
+      href="/"
+      onClick={(event) => {
+        if (pathname !== '/') return
+        event.preventDefault()
+        scrollToHash('top')
+        window.history.pushState(null, '', '/')
+      }}
+      className={`rounded-md px-2 py-1 underline decoration-2 decoration-accent underline-offset-4 hover:text-accent ${light ? 'text-background hover:bg-background/10' : 'text-foreground hover:bg-surface'} ${className}`}
+    >
+      {children}
+    </Link>
+  )
+}
+
+export function TopBar({ current = 'home', onField = false }: { current?: string; onField?: boolean }) {
   const pathname = usePathname()
 
   function onNav(event: React.MouseEvent<HTMLAnchorElement>, hash: string) {
@@ -65,15 +92,21 @@ export function TopBar({ current = 'home' }: { current?: string }) {
             className={
               (current === 'home' && link.n === '1') || (current === 'projects' && link.n === '2')
                 ? 'font-bold text-accent'
-                : 'text-muted-foreground hover:text-foreground'
+                : onField
+                  ? 'text-background/80 hover:text-background'
+                  : 'text-muted-foreground hover:text-foreground'
             }
           >
             {link.n}
           </Link>
         ))}
       </nav>
-      <span className="truncate text-foreground">pesty.sh</span>
-      <a href={`https://github.com/${siteConfig.owner}`} className="text-muted-foreground hover:text-accent" rel="noreferrer">
+      <BrandHomeLink className="truncate">pesty.sh</BrandHomeLink>
+      <a
+        href={`https://github.com/${siteConfig.owner}`}
+        className={onField ? 'text-background/80 hover:text-accent' : 'text-muted-foreground hover:text-accent'}
+        rel="noreferrer"
+      >
         github.com/{siteConfig.owner}
       </a>
     </header>

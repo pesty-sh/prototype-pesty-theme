@@ -73,6 +73,48 @@ function closeDiv(html: string, start: number) {
   return html.length
 }
 
+const VOID_TAGS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+])
+
+function balanceFragment(html: string) {
+  const stack: string[] = []
+  let out = ''
+  const re = /<\/?([a-zA-Z][\w:-]*)(\s[^<>]*)?\/?>/g
+  let last = 0
+  let match: RegExpExecArray | null
+  while ((match = re.exec(html))) {
+    out += html.slice(last, match.index)
+    last = match.index + match[0].length
+    const name = match[1].toLowerCase()
+    const closing = match[0].startsWith('</')
+    const selfClosing = match[0].endsWith('/>') || VOID_TAGS.has(name)
+    if (closing) {
+      const index = stack.lastIndexOf(name)
+      if (index === -1) continue
+      out += stack.splice(index).reverse().map((tag) => `</${tag}>`).join('')
+      continue
+    }
+    out += match[0]
+    if (!selfClosing) stack.push(name)
+  }
+  out += html.slice(last)
+  return out + stack.reverse().map((tag) => `</${tag}>`).join('')
+}
+
 export function splitReadmeHtml(html: string): ReadmeSegment[] {
   const blocks: { start: number; end: number; code: string; lang: string }[] = []
   const re = /<div\b[^>]*class="([^"]*(?:highlight|snippet-clipboard)[^"]*)"[^>]*>|<pre\b([^>]*)>/gi
@@ -118,10 +160,10 @@ export function splitReadmeHtml(html: string): ReadmeSegment[] {
   let cursor = 0
   for (const block of blocks) {
     if (block.start < cursor) continue
-    if (block.start > cursor) segments.push({ kind: 'html', html: html.slice(cursor, block.start) })
+    if (block.start > cursor) segments.push({ kind: 'html', html: balanceFragment(html.slice(cursor, block.start)) })
     segments.push({ kind: 'code', code: block.code, lang: block.lang })
     cursor = block.end
   }
-  if (cursor < html.length) segments.push({ kind: 'html', html: html.slice(cursor) })
+  if (cursor < html.length) segments.push({ kind: 'html', html: balanceFragment(html.slice(cursor)) })
   return segments
 }

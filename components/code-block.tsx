@@ -11,22 +11,20 @@ export function CodeBlock({ code, lang }: { code: string; lang: string }) {
         <span>{label}</span>
         <CopyButton value={code.replace(/\n$/, '')} label={`Copy ${label} example`} />
       </figcaption>
-      <div className="flex min-w-0">
-        {numbered && (
-          <div
-            className="shrink-0 select-none border-r border-border/40 px-3 py-3 text-right font-mono text-sm leading-6 text-muted-foreground"
-            aria-hidden="true"
-          >
-            {lines.map((_, index) => (
-              <div key={index}>{index + 1}</div>
-            ))}
+      <div className="overflow-x-auto py-3 font-mono text-sm leading-6" tabIndex={0}>
+        {lines.map((line, index) => (
+          <div key={index} className="flex min-h-6">
+            {numbered && (
+              <span
+                className="sticky left-0 w-10 shrink-0 select-none border-r border-border/40 bg-surface pr-3 text-right text-muted-foreground"
+                aria-hidden="true"
+              >
+                {index + 1}
+              </span>
+            )}
+            <span className="whitespace-pre px-3">{line || ' '}</span>
           </div>
-        )}
-        <div className="min-w-0 flex-1 overflow-x-auto px-3 py-3" tabIndex={0}>
-          <pre className="m-0 font-mono text-sm leading-6">
-            <code className="whitespace-pre">{lines.join('\n')}</code>
-          </pre>
-        </div>
+        ))}
       </div>
     </figure>
   )

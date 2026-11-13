@@ -58,9 +58,23 @@ export function MouseType() {
       shadows.push({ el, born: now })
     }
 
+    const overHeader = (y: number) => {
+      const header = document.getElementById('rust-header')
+      if (!header) return false
+      const rect = header.getBoundingClientRect()
+      return y >= rect.top && y <= rect.bottom
+    }
+
     const onMove = (event: PointerEvent) => {
       const x = event.clientX
       const y = event.clientY
+      if (overHeader(y)) {
+        caret.hidden = true
+        px = -1
+        py = -1
+        acc = 0
+        return
+      }
       const now = performance.now()
       if (px >= 0) acc += Math.hypot(x - px, y - py)
       const fromX = px

@@ -27,6 +27,12 @@
 }
 
 /* Fallbacks only — real values come from theme.config.ts via <html style>. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 :root {
   color-scheme: light;
   --desktop: #ececec;
@@ -86,10 +92,14 @@ html {
   }
 
   /* Undo with MouseType: html.mouse-type and .mouse-cell */
-  html.mouse-type,
-  html.mouse-type * {
-    cursor: none;
-  }
+html.mouse-type,
+html.mouse-type * {
+  cursor: none;
+}
+html.mouse-type #rust-header,
+html.mouse-type #rust-header * {
+  cursor: auto;
+}
   .mouse-cell {
     position: fixed;
     top: 0;
@@ -156,7 +166,10 @@ html {
   }
   .readme pre code,
   .readme .code-block code {
-    @apply bg-transparent p-0;
+    @apply bg-transparent p-0 text-sm leading-6;
+  }
+  .readme .code-block pre {
+    @apply m-0 border-0 bg-transparent p-0;
   }
   .readme .code-block {
     @apply mb-4;

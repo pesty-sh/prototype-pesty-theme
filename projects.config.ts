@@ -29,7 +29,7 @@ export const siteConfig = {
   owner: 'pesty-sh',
   bio: 'Build anything. Fix everything. One binary. No meetings.',
   autoDiscover: true,
-  exclude: ['apt', 'homebrew-tap', '.github'],
+  exclude: ['apt', 'homebrew-tap', '.github', 'prototype-pesty-theme'],
   revalidateSeconds: 3600,
   brewTap: 'pesty-sh/tap',
   aptRepo: 'https://pesty-sh.github.io/apt',
@@ -55,5 +55,9 @@ export const projects: ProjectConfig[] = [
   {
     repo: 'prototype-event-voter',
     tagline: 'Prototype app for event suggestions.',
+  },
+  {
+    repo: 'prototype-pesty-header',
+    tagline: 'Pixel header tutorial: pointer, motion, and the pesty.sh wordmark.',
   },
 ]

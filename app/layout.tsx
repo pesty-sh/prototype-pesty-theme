@@ -42,8 +42,8 @@ export const metadata: Metadata = {
     images: ['/brand/pesty-wordmark.png'],
   },
   icons: {
-    icon: '/brand/pesty-mark.png',
-    apple: '/brand/pesty-mark.png',
+    icon: [{ url: '/brand/pesty-mark.png', type: 'image/png' }],
+    apple: [{ url: '/brand/pesty-mark.png', type: 'image/png' }],
   },
 }
 
