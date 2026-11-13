@@ -1,31 +1,38 @@
-const LINES: { text: string; status?: string }[] = [
-  { text: 'pesty init — pesty.sh' },
-  { text: 'loading confidence', status: 'ok' },
-  { text: 'loading power', status: 'ok' },
-  { text: 'loading honor', status: 'ok' },
-  { text: 'unloading dignity', status: 'gone' },
-  { text: 'ready for anything.' },
-]
+import type { Project } from '@/lib/github'
+import { Tile } from './tile'
 
-export function BootLog() {
+export function BootLog({ projects }: { projects: Project[] }) {
+  const lines: { text: string; status?: string; hot?: boolean }[] = [
+    { text: 'pesty init — pesty.sh' },
+    { text: 'loading confidence', status: 'ok' },
+    { text: 'loading power', status: 'ok' },
+    ...projects
+      .filter((p) => p.release)
+      .map((p) => ({ text: `mount ${p.name}`, status: p.release!.tag_name })),
+    { text: 'unloading dignity', status: 'gone', hot: true },
+    { text: 'telemetry', status: 'none', hot: true },
+    { text: 'meetings', status: 'none', hot: true },
+    { text: 'ready for anything.' },
+  ]
+
   return (
-    <div
-      role="log"
-      aria-label="Boot log"
-      className="border-b border-border bg-muted px-4 py-4 text-sm leading-relaxed text-muted-foreground md:px-6"
-    >
-      {LINES.map((line, i) => (
-        <p key={line.text} className="boot-line" style={{ animationDelay: `${i * 220}ms` }}>
-          <span aria-hidden="true">{'> '}</span>
-          {line.text}
-          {line.status && (
-            <span className={line.status === 'ok' ? 'text-foreground' : 'font-bold text-foreground'}>
-              {' '}
-              [{line.status}]
+    <Tile title="journalctl -f" meta={`${lines.length} lines`}>
+      <div role="log" aria-label="Boot log" className="flex flex-col px-4 py-4 font-mono text-sm leading-6">
+        {lines.map((line, i) => (
+          <p key={line.text} className="boot-line text-muted-foreground" style={{ animationDelay: `${i * 160}ms` }}>
+            <span className="text-border" aria-hidden="true">
+              {'> '}
             </span>
-          )}
-        </p>
-      ))}
-    </div>
+            {line.text}
+            {line.status && (
+              <span className={line.hot ? 'text-accent' : 'text-foreground'}>
+                {' '}
+                [{line.status}]
+              </span>
+            )}
+          </p>
+        ))}
+      </div>
+    </Tile>
   )
 }

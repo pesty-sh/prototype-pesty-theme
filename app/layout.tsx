@@ -1,35 +1,53 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { JetBrains_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
+import { palette, paletteToCssVars } from '@/theme.config'
+import { siteConfig } from '@/projects.config'
 import './globals.css'
+
+const satoshi = localFont({
+  src: './fonts/Satoshi-Bold.woff2',
+  weight: '700',
+  variable: '--font-satoshi',
+  display: 'swap',
+})
+
+const switzer = localFont({
+  src: [
+    { path: './fonts/Switzer-Regular.woff2', weight: '400' },
+    { path: './fonts/Switzer-Medium.woff2', weight: '500' },
+  ],
+  variable: '--font-switzer',
+  display: 'swap',
+})
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
-  weight: ['400', '700'],
+  weight: ['400'],
   variable: '--font-jetbrains-mono',
 })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://pesty.sh'),
-  title: 'PESTY.SH — Build anything. Fix everything.',
-  description:
-    'What can we build? Anything. What can we fix? Everything. What will it cost? Our dignity.',
+  title: { default: 'Pesty — pesty.sh', template: '%s — pesty.sh' },
+  description: siteConfig.bio,
   openGraph: {
-    title: 'PESTY.SH',
-    description: 'Build anything. Fix everything. Cost: our dignity.',
+    title: 'Pesty — pesty.sh',
+    description: siteConfig.bio,
     url: 'https://pesty.sh',
     siteName: 'pesty.sh',
-    images: ['/pesty-bug.png'],
+    images: ['/brand/pesty-wordmark.png'],
   },
   icons: {
-    icon: '/pesty-bug.png',
-    apple: '/pesty-bug.png',
+    icon: '/brand/pesty-mark.png',
+    apple: '/brand/pesty-mark.png',
   },
 }
 
 export const viewport: Viewport = {
   colorScheme: 'light',
-  themeColor: '#ffffff',
+  themeColor: palette.desktop,
 }
 
 export default function RootLayout({
@@ -38,7 +56,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`bg-background ${jetbrainsMono.variable}`}>
+    <html
+      lang="en"
+      className={`bg-desktop ${satoshi.variable} ${switzer.variable} ${jetbrainsMono.variable}`}
+      style={paletteToCssVars(palette) as React.CSSProperties}
+    >
       <body className="antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}

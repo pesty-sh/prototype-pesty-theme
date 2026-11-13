@@ -3,41 +3,41 @@
 @import 'shadcn/tailwind.css';
 
 @theme inline {
-  --font-sans: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-heading: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-switzer), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
+  --color-desktop: var(--desktop);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-muted: var(--muted);
+  --color-card: var(--background);
+  --color-card-foreground: var(--foreground);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --color-surface: var(--surface);
+  --color-muted: var(--surface);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
-  --color-ring: var(--ring);
+  --color-ring: var(--accent);
   --radius-sm: 0;
   --radius-md: 0;
   --radius-lg: 0;
 }
 
-/* Omarchy "white" palette: paper, ink, graphite accent, selection gray */
+/* Fallbacks only — real values come from theme.config.ts via <html style>. */
 :root {
   color-scheme: light;
-  --background: #ffffff;
-  --foreground: #000000;
-  --card: #ffffff;
-  --card-foreground: #000000;
-  --primary: #000000;
-  --primary-foreground: #ffffff;
-  --muted: #f3f3f3;
-  --muted-foreground: #6e6e6e;
-  --accent: #6e6e6e;
-  --accent-foreground: #ffffff;
-  --border: #c0c0c0;
-  --ring: #000000;
+  --desktop: #ececec;
+  --background: #fafafa;
+  --foreground: #212121;
+  --muted-foreground: #6b6b6b;
+  --surface: #f2f2f2;
+  --border: #8a4ad7;
+  --accent: #c900c4;
+  --accent-foreground: #fafafa;
+  --selection: #d0d0d0;
   --radius: 0;
 }
 
@@ -46,27 +46,105 @@
     @apply border-border outline-ring;
   }
   body {
-    @apply bg-background text-foreground font-mono;
+    @apply bg-desktop text-foreground font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
   }
   ::selection {
-    background: var(--border);
+    background: var(--selection);
     color: var(--foreground);
   }
 }
 
 @layer components {
+  .tile {
+    @apply border-2 border-border bg-background transition-colors;
+  }
+  .tile:hover,
+  .tile:focus-within,
+  .tile[data-active='true'] {
+    @apply border-accent;
+  }
+
   .cursor {
     display: inline-block;
-    width: 0.55em;
-    height: 0.95em;
+    width: 0.5em;
+    height: 0.9em;
     vertical-align: baseline;
-    background: var(--foreground);
+    background: var(--accent);
     animation: blink 1.06s steps(1) infinite;
   }
 
   .boot-line {
     opacity: 0;
     animation: boot-in 0.01s linear forwards;
+  }
+
+  .readme {
+    @apply text-[15px] leading-relaxed text-foreground;
+  }
+  .readme :where(h1, h2, h3, h4) {
+    @apply font-heading mt-8 mb-3 leading-tight text-balance;
+  }
+  .readme h1 {
+    @apply text-3xl;
+  }
+  .readme h2 {
+    @apply text-2xl;
+  }
+  .readme h3 {
+    @apply text-lg;
+  }
+  .readme :where(p, ul, ol, pre, table, blockquote) {
+    @apply mb-4;
+  }
+  .readme :where(ul) {
+    @apply list-disc pl-6;
+  }
+  .readme :where(ol) {
+    @apply list-decimal pl-6;
+  }
+  .readme li {
+    @apply mb-1;
+  }
+  .readme a {
+    @apply text-border underline underline-offset-2 hover:text-accent;
+  }
+  .readme :where(code) {
+    @apply font-mono bg-surface px-1 text-[0.9em];
+  }
+  .readme pre {
+    @apply overflow-x-auto border border-border bg-surface px-4 py-3 font-mono text-sm leading-6;
+  }
+  .readme pre code {
+    @apply bg-transparent p-0;
+  }
+  .readme table {
+    @apply block w-full overflow-x-auto border-collapse text-sm;
+  }
+  .readme :where(th, td) {
+    @apply border border-border px-3 py-1.5 text-left align-top;
+  }
+  .readme th {
+    @apply bg-surface;
+  }
+  .readme blockquote {
+    @apply border-l-2 border-accent pl-4 text-muted-foreground;
+  }
+  .readme img {
+    @apply inline-block max-w-full;
+  }
+  .readme .anchor,
+  .readme .octicon {
+    @apply hidden;
+  }
+  .readme > :first-child,
+  .readme article > :first-child,
+  .readme .markdown-heading:first-child > * {
+    @apply mt-0;
   }
 }
 
