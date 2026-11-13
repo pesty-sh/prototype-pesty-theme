@@ -1,6 +1,10 @@
 import { siteConfig } from '@/projects.config'
 import { CommandLine } from './copy-button'
 
+export function brewSetupCommands() {
+  return [`brew tap ${siteConfig.brewTap}`, `brew trust --tap ${siteConfig.brewTap}`]
+}
+
 export function aptSetupCommands() {
   return [
     `curl -fsSL ${siteConfig.aptRepo}/pesty-archive-keyring.gpg | sudo tee /usr/share/keyrings/pesty-archive-keyring.gpg >/dev/null`,
@@ -14,8 +18,14 @@ export function InstallChannels({ pkg = '<name>' }: { pkg?: string }) {
     <div className="grid gap-6 md:grid-cols-2">
       <div className="flex min-w-0 flex-col gap-2">
         <h3 className="text-lg">Homebrew</h3>
-        <p className="text-sm leading-relaxed text-muted-foreground">macOS and Linux. Builds from the tagged source.</p>
-        <CommandLine command={`brew install ${siteConfig.brewTap}/${pkg}`} />
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          macOS and Linux. Builds from the tagged source. Add the tap once.
+        </p>
+        <div className="flex flex-col gap-px">
+          {[...brewSetupCommands(), `brew install ${siteConfig.brewTap}/${pkg}`].map((c) => (
+            <CommandLine key={c} command={c} />
+          ))}
+        </div>
       </div>
       <div className="flex min-w-0 flex-col gap-2">
         <h3 className="text-lg">apt</h3>

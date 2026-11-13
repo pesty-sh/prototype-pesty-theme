@@ -22,7 +22,7 @@ export function ProjectTile({ project, index = 0 }: { project: Project; index?: 
         <div className="panel-body flex flex-1 flex-col gap-4">
           <div className="flex items-center gap-3">
             <ProjectMark slug={project.slug} size={72} />
-            <h3 id={`p-${project.slug}`} className="pointer-events-auto min-w-0 text-2xl leading-none tracking-tight">
+            <h3 id={`p-${project.slug}`} className="pointer-events-auto relative z-20 min-w-0 text-2xl leading-none tracking-tight">
               <TypeTitle text={project.name} delay={80 + index * 70} speed={24} />
             </h3>
           </div>

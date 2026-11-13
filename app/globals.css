@@ -51,6 +51,14 @@ html {
   scroll-behavior: smooth;
 }
 
+type-title {
+  cursor: pointer;
+}
+
+type-title .type-title-fallback {
+  text-wrap: balance;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring;

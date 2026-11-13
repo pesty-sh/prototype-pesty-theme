@@ -182,12 +182,18 @@ export class Field {
 }
 
 async function instantiate(url: string): Promise<WebAssembly.Instance> {
+  const load = async () => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`engine.wasm responded ${res.status}`);
+    return res.arrayBuffer();
+  };
   try {
-    const streamed = await WebAssembly.instantiateStreaming(fetch(url), {});
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`engine.wasm responded ${res.status}`);
+    const streamed = await WebAssembly.instantiateStreaming(res, {});
     return streamed.instance;
   } catch {
-    const bytes = await fetch(url).then((res) => res.arrayBuffer());
-    const compiled = await WebAssembly.instantiate(bytes, {});
+    const compiled = await WebAssembly.instantiate(await load(), {});
     return compiled.instance;
   }
 }

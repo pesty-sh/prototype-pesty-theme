@@ -57,7 +57,11 @@ async function gh<T>(path: string, accept = 'application/vnd.github+json'): Prom
   const headers: Record<string, string> = { Accept: accept, 'X-GitHub-Api-Version': '2022-11-28' }
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
   try {
-    const res = await fetch(`${API}${path}`, { headers, next: { revalidate: siteConfig.revalidateSeconds } })
+    const res = await fetch(`${API}${path}`, {
+      headers,
+      signal: AbortSignal.timeout(8000),
+      next: { revalidate: siteConfig.revalidateSeconds },
+    })
     if (!res.ok) return null
     return (accept.includes('html') ? await res.text() : await res.json()) as T
   } catch {

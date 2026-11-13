@@ -1,9 +1,9 @@
-import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { JetBrains_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 import { MouseType } from '@/components/mouse-type'
 import { HashScroll } from '@/components/top-bar'
+import { rustHeaderBoot } from '@/lib/rust-header-boot'
+import { typeTitleBoot } from '@/lib/type-title-boot'
 import { palette, paletteToCssVars } from '@/theme.config'
 import { siteConfig } from '@/projects.config'
 import './globals.css'
@@ -24,10 +24,11 @@ const switzer = localFont({
   display: 'swap',
 })
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400'],
+const jetbrainsMono = localFont({
+  src: './fonts/JetBrainsMono-Regular.woff2',
+  weight: '400',
   variable: '--font-jetbrains-mono',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -64,10 +65,10 @@ export default function RootLayout({
       style={paletteToCssVars(palette) as React.CSSProperties}
     >
       <body className="antialiased">
+        <script dangerouslySetInnerHTML={{ __html: typeTitleBoot + '\n' + rustHeaderBoot }} />
         <HashScroll />
         <MouseType />
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )

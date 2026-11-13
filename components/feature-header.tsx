@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { siteConfig } from '@/projects.config'
 import { Field } from '@/lib/pixel-field'
 import { satoshiMark } from '@/lib/satoshi-mark'
 import { BootLog } from './boot-log'
+import { PixelHeader } from './pixel-header'
+import { PixelWordmark } from './pixel-wordmark'
 import { Tile } from './tile'
 import { TopBar } from './top-bar'
 import { TypeTitle } from './type-title'
@@ -54,6 +56,7 @@ export function FeatureHeader() {
   const navRef = useRef<HTMLDivElement>(null)
   const markRef = useRef<HTMLButtonElement>(null)
   const fieldRef = useRef<Field | null>(null)
+  const [engine, setEngine] = useState<'svg' | 'wasm' | 'glyphs'>('svg')
 
   useEffect(() => {
     const root = rootRef.current
@@ -61,6 +64,8 @@ export function FeatureHeader() {
     const nav = navRef.current
     const mark = markRef.current
     if (!root || !canvas || !nav || !mark) return
+    if (root.dataset.rustBoot === '1') return
+    root.dataset.rustBoot = '1'
     const ctx = canvas.getContext('2d', { alpha: false })
     if (!ctx) return
     const fillWhite = () => {
@@ -79,6 +84,7 @@ export function FeatureHeader() {
     let raf = 0
     let lastDraw = 0
     let reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let cursor = { x: 0, y: 0, inside: false }
     const quiet = [nav]
 
     const dpr = () => Math.min(window.devicePixelRatio || 1, 2)
@@ -108,6 +114,7 @@ export function FeatureHeader() {
         fieldSize = { w: width, h: height }
       }
       const markBox = boxOf(mark, origin, scale)
+      field.pointer(cursor.x, cursor.y, cursor.inside)
       field.clearQuiet()
       const pad = QUIET_PAD * scale
       for (const el of quiet) {
@@ -143,6 +150,12 @@ export function FeatureHeader() {
       }
     }
 
+    const onMove = (event: PointerEvent) => {
+      cursor = local(event)
+    }
+    const onLeave = () => {
+      cursor = { x: 0, y: 0, inside: false }
+    }
     const onDown = (event: PointerEvent) => {
       if (!field || event.button !== 0) return
       const target = event.target
@@ -158,26 +171,35 @@ export function FeatureHeader() {
     }
 
     let cancel = false
-    Field.load('/engine.wasm').then(async (loaded) => {
-      if (cancel) return
-      field = loaded
-      fieldRef.current = loaded
-      loaded.setHex(0, '#c900c4')
-      loaded.setHex(1, '#fafafa')
-      draw(performance.now())
-      raf = window.requestAnimationFrame(loop)
-      try {
-        const drawn = await satoshiMark(TITLE)
-        if (cancel || !drawn) return
-        loaded.setMark(drawn.cells, drawn.cols, drawn.rows)
-        mark.style.aspectRatio = `${loaded.cols} / ${loaded.rows}`
-      } catch {
-        return
-      }
-    })
+    Field.load('/engine.wasm')
+      .then(async (loaded) => {
+        if (cancel) return
+        field = loaded
+        fieldRef.current = loaded
+        loaded.setHex(0, '#c900c4')
+        loaded.setHex(1, '#fafafa')
+        draw(performance.now())
+        raf = window.requestAnimationFrame(loop)
+        try {
+          const drawn = await satoshiMark(TITLE)
+          if (cancel || !drawn || !loaded.setMark(drawn.cells, drawn.cols, drawn.rows)) {
+            setEngine('glyphs')
+            return
+          }
+          mark.style.aspectRatio = `${loaded.cols} / ${loaded.rows}`
+          setEngine('wasm')
+        } catch {
+          if (!cancel) setEngine('glyphs')
+        }
+      })
+      .catch(() => {
+        if (!cancel) setEngine('glyphs')
+      })
 
+    window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerdown', onDown)
     window.addEventListener('pointerup', onUp)
+    document.documentElement.addEventListener('pointerleave', onLeave)
     const onReduce = (event: MediaQueryListEvent) => {
       reduced = event.matches
     }
@@ -189,8 +211,10 @@ export function FeatureHeader() {
       running = false
       fieldRef.current = null
       window.cancelAnimationFrame(raf)
+      window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerdown', onDown)
       window.removeEventListener('pointerup', onUp)
+      document.documentElement.removeEventListener('pointerleave', onLeave)
       media.removeEventListener('change', onReduce)
     }
   }, [])
@@ -199,7 +223,7 @@ export function FeatureHeader() {
     <section id="rust-header" ref={rootRef} className="relative h-dvh w-full overflow-hidden bg-background" aria-label="Pesty">
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full bg-background" aria-hidden="true" />
       <div className="pointer-events-none relative z-10 flex h-full flex-col">
-        <div ref={navRef} className="pointer-events-auto">
+        <div ref={navRef} data-rust-nav className="pointer-events-auto">
           <TopBar />
         </div>
         <div className="mt-6 flex min-h-0 flex-1 items-start justify-center px-3 md:mt-8">
@@ -207,10 +231,19 @@ export function FeatureHeader() {
             ref={markRef}
             type="button"
             aria-label="Replay pesty-sh"
-            className="pointer-events-auto w-[min(62vw,28rem)] bg-transparent"
+            data-rust-mark
+            className="pointer-events-auto relative w-[min(62vw,28rem)] bg-transparent"
             style={{ aspectRatio: '80 / 21' }}
             onClick={() => fieldRef.current?.replay(performance.now())}
-          />
+          >
+            <span data-rust-fallback className="absolute inset-0">
+              {engine === 'wasm' ? null : engine === 'glyphs' ? (
+                <PixelHeader word={TITLE} anchor="center" onHome={() => {}} />
+              ) : (
+                <PixelWordmark text={TITLE} />
+              )}
+            </span>
+          </button>
         </div>
         <div className="pointer-events-auto px-3 pb-3 md:px-4">
           <Tile
@@ -226,41 +259,41 @@ export function FeatureHeader() {
                 <span className="shrink-0">NORMAL</span>
               </div>
               <div className="flex flex-col gap-2 p-4">
-              <TypeTitle
-                as="h2"
-                id="header-pitch"
-                text={siteConfig.bio}
-                persistCursor
-                speed={22}
-                className="text-balance text-lg leading-tight tracking-tight"
-              />
-              <dl className="flex flex-col gap-1 font-mono text-sm">
-                {CREED.map(([q, a]) => (
-                  <div key={q} className="flex flex-wrap gap-x-3">
-                    <dt className="text-muted-foreground">
-                      <span className="text-border" aria-hidden="true">
-                        {'> '}
-                      </span>
-                      {q}
-                    </dt>
-                    <dd className="text-accent">{a}</dd>
-                  </div>
-                ))}
-              </dl>
-              <div className="flex flex-nowrap gap-3">
-                <a
-                  href="#projects"
-                  className="border-2 border-accent bg-accent px-5 py-2 text-sm font-medium text-accent-foreground transition-colors hover:bg-background hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2"
-                >
-                  Browse projects
-                </a>
-                <a
-                  href="#install"
-                  className="border-2 border-border px-5 py-2 text-sm font-medium transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2"
-                >
-                  Install
-                </a>
-              </div>
+                <TypeTitle
+                  as="h2"
+                  id="header-pitch"
+                  text={siteConfig.bio}
+                  persistCursor
+                  speed={22}
+                  className="text-balance text-lg leading-tight tracking-tight"
+                />
+                <dl className="flex flex-col gap-1 font-mono text-sm">
+                  {CREED.map(([q, a]) => (
+                    <div key={q} className="flex flex-wrap gap-x-3">
+                      <dt className="text-muted-foreground">
+                        <span className="text-border" aria-hidden="true">
+                          {'> '}
+                        </span>
+                        {q}
+                      </dt>
+                      <dd className="text-accent">{a}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="flex flex-nowrap gap-3">
+                  <a
+                    href="#projects"
+                    className="border-2 border-accent bg-accent px-5 py-2 text-sm font-medium text-accent-foreground transition-colors hover:bg-background hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    Browse projects
+                  </a>
+                  <a
+                    href="#install"
+                    className="border-2 border-border px-5 py-2 text-sm font-medium transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    Install
+                  </a>
+                </div>
               </div>
             </div>
             <div className="flex min-w-0 flex-col border-t border-border/40 md:border-t-0 md:border-l">

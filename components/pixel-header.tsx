@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react'
 import glyphs from './pixel-header/glyphs.json'
 
-const WORD = 'pesty.sh'
 const GAP = glyphs.gap
 const ROWS = glyphs.glyphs.p.length
 const FIELD = '#fafafa'
@@ -19,8 +18,8 @@ function inkAt(ch: string, row: number, col: number) {
   return glyph[row]?.[col] === '#'
 }
 
-function wordWidth() {
-  return WORD.split('').reduce((sum, ch, index) => {
+function wordWidth(word: string) {
+  return word.split('').reduce((sum, ch, index) => {
     const glyph = (glyphs.glyphs as Glyphs)[ch as keyof Glyphs]
     return sum + (glyph?.[0]?.length ?? 3) + (index ? GAP : 0)
   }, 0)
@@ -30,12 +29,22 @@ function mix(a: readonly number[], b: readonly number[], t: number) {
   return a.map((channel, index) => Math.round(channel + (b[index] - channel) * t))
 }
 
-export function PixelHeader({ onHome, anchor = 'center' }: { onHome: () => void; anchor?: 'center' | 'upper' }) {
+export function PixelHeader({
+  onHome,
+  anchor = 'center',
+  word = 'pesty.sh',
+}: {
+  onHome: () => void
+  anchor?: 'center' | 'upper'
+  word?: string
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const homeRef = useRef(onHome)
   const anchorRef = useRef(anchor)
+  const wordRef = useRef(word)
   homeRef.current = onHome
   anchorRef.current = anchor
+  wordRef.current = word
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -45,7 +54,8 @@ export function PixelHeader({ onHome, anchor = 'center' }: { onHome: () => void;
     ctx.imageSmoothingEnabled = false
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const cols = wordWidth()
+    const word = wordRef.current
+    const cols = wordWidth(word)
     const specks = new Uint8Array(cols * ROWS)
     let seed = 17
     for (let i = 0; i < specks.length; i += 1) {
@@ -91,7 +101,7 @@ export function PixelHeader({ onHome, anchor = 'center' }: { onHome: () => void;
       const drift = reduced ? 0 : Math.sin(now / 1400) * 0.5
 
       let cursor = 0
-      for (const ch of WORD) {
+      for (const ch of word) {
         const glyph = (glyphs.glyphs as Glyphs)[ch as keyof Glyphs]
         const glyphCols = glyph?.[0]?.length ?? 3
         for (let row = 0; row < ROWS; row += 1) {
@@ -147,14 +157,14 @@ export function PixelHeader({ onHome, anchor = 'center' }: { onHome: () => void;
       canvas.removeEventListener('pointerleave', onLeave)
       canvas.removeEventListener('click', onClick)
     }
-  }, [])
+  }, [word])
 
   return (
     <canvas
       ref={canvasRef}
       className="block h-full w-full cursor-pointer"
       role="img"
-      aria-label="pesty.sh"
+      aria-label={word}
     />
   )
 }
