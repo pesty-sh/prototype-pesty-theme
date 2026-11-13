@@ -62,6 +62,7 @@ export const projects: ProjectConfig[] = [
   {
     repo: 'prototype-pesty-header',
     tagline: 'Pixel header tutorial: pointer, motion, and the pesty.sh wordmark.',
+    homepage: 'https://prototype-pesty-header.vercel.app/',
   },
   {
     repo: 'prototype-warehouse-picker-tool',
