@@ -177,7 +177,7 @@ export function FeatureHeader() {
     }
 
     let cancel = false
-    Field.load('/engine.wasm?v=0.1.10')
+    Field.load('/engine.wasm?v=0.1.12')
       .then(async (loaded) => {
         if (cancel) return
         field = loaded

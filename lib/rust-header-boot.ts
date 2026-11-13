@@ -184,7 +184,7 @@ export const rustHeaderBoot = `
       if (field) field.api.engine_replay(field.ptr, performance.now())
     })
 
-    loadWasm('/engine.wasm?v=0.1.10').then(function (instance) {
+    loadWasm('/engine.wasm?v=0.1.12').then(function (instance) {
       if (!running || !root.isConnected) return
       var api = instance.exports
       field = { api: api, ptr: api.engine_new() }
