@@ -230,7 +230,7 @@ export function FeatureHeader() {
             type="button"
             aria-label="Replay pesty-sh"
             data-rust-mark
-            className="pointer-events-auto relative w-[min(92vw,77rem)] bg-transparent"
+            className="pointer-events-auto relative w-[min(calc(92vw*80/110),calc(56rem*80/110))] bg-transparent"
             style={{ aspectRatio: '80 / 21' }}
             onClick={() => {
               if (replayedRef.current) {
