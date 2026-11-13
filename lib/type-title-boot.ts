@@ -31,7 +31,9 @@ export const typeTitleBoot = `
     chars.textContent = text
     var timer = 0
     var started = false
+    var seen = window.__pestyTyped || (window.__pestyTyped = {})
     function play(quick) {
+      seen[text] = true
       window.clearTimeout(timer)
       if (reducedQuery.matches) {
         chars.textContent = text
@@ -56,6 +58,11 @@ export const typeTitleBoot = `
     })
     var fallback = el.querySelector('.type-title-fallback')
     if (fallback) fallback.hidden = true
+    if (seen[text]) {
+      chars.textContent = text
+      caret.hidden = !persist
+      return
+    }
     function arm() {
       if (started || reducedQuery.matches) return
       var rect = el.getBoundingClientRect()

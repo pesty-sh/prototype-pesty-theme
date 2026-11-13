@@ -60,67 +60,6 @@ export const rustHeaderBoot = `
     api.engine_hex_commit(ptr, kind, bytes.length)
   }
 
-  function satoshiMark(text) {
-    var face = new FontFace('Satoshi Header', 'url(/fonts/Satoshi-Bold.woff2)', { weight: '700' })
-    return face.load().then(function (loaded) {
-      document.fonts.add(loaded)
-      var probe = document.createElement('canvas').getContext('2d')
-      if (!probe) return null
-      var size = 96
-      probe.font = '700 ' + size + 'px "Satoshi Header"'
-      var measured = probe.measureText(text)
-      var pad = 8
-      var width = Math.ceil(measured.width) + pad * 2
-      var ascent = Math.ceil(measured.actualBoundingBoxAscent || size * 0.8)
-      var descent = Math.ceil(measured.actualBoundingBoxDescent || size * 0.22)
-      var height = ascent + descent + pad * 2
-      var canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
-      var ctx = canvas.getContext('2d', { willReadFrequently: true })
-      if (!ctx) return null
-      ctx.font = '700 ' + size + 'px "Satoshi Header"'
-      ctx.fillStyle = '#000'
-      ctx.textBaseline = 'alphabetic'
-      ctx.fillText(text, pad, pad + ascent)
-      var image = ctx.getImageData(0, 0, width, height)
-      function ink(x, y) { return image.data[(y * width + x) * 4 + 3] > 96 }
-      var minX = width, minY = height, maxX = 0, maxY = 0
-      for (var y = 0; y < height; y++) {
-        for (var x = 0; x < width; x++) {
-          if (!ink(x, y)) continue
-          if (x < minX) minX = x
-          if (y < minY) minY = y
-          if (x > maxX) maxX = x
-          if (y > maxY) maxY = y
-        }
-      }
-      if (maxX < minX) return null
-      var srcW = maxX - minX + 1
-      var srcH = maxY - minY + 1
-      var rows = 32
-      var cols = Math.max(1, Math.min(160, Math.round((srcW / srcH) * rows)))
-      var cells = new Uint8Array(cols * rows)
-      for (var row = 0; row < rows; row++) {
-        for (var col = 0; col < cols; col++) {
-          var x0 = minX + Math.floor((col * srcW) / cols)
-          var x1 = minX + Math.floor(((col + 1) * srcW) / cols)
-          var y0 = minY + Math.floor((row * srcH) / rows)
-          var y1 = minY + Math.floor(((row + 1) * srcH) / rows)
-          var hits = 0, total = 0
-          for (var yy = y0; yy < y1; yy++) {
-            for (var xx = x0; xx < x1; xx++) {
-              total++
-              if (ink(xx, yy)) hits++
-            }
-          }
-          cells[row * cols + col] = total > 0 && hits / total > 0.32 ? 1 : 0
-        }
-      }
-      return { cells: cells, cols: cols, rows: rows }
-    })
-  }
-
   function boot(root) {
     if (!root || root.dataset.rustBoot === '1') return
     var canvas = root.querySelector('canvas')
@@ -138,31 +77,55 @@ export const rustHeaderBoot = `
     var running = true
     var raf = 0
     var lastDraw = 0
+    var primed = false
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (window.__pestyRustStop) window.__pestyRustStop()
+    window.__pestyRustStop = function () { running = false }
 
-    function draw(now) {
-      if (!field) return
+    function paintGround() {
       var origin = canvas.getBoundingClientRect()
       var scale = dpr()
-      var width = Math.max(1, Math.round(origin.width * scale))
-      var height = Math.max(1, Math.round(origin.height * scale))
+      var width = Math.max(1, Math.round(Math.max(origin.width, 1) * scale))
+      var height = Math.max(1, Math.round(Math.max(origin.height, 1) * scale))
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width
         canvas.height = height
         ctx.imageSmoothingEnabled = false
         ctx.fillStyle = '#fafafa'
-        ctx.fillRect(0, 0, width, height)
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
       }
-      if (fieldSize.w !== width || fieldSize.h !== height) {
-        field.api.engine_resize(field.ptr, width, height)
-        fieldSize = { w: width, h: height }
+      return { origin: origin, scale: scale, width: width, height: height }
+    }
+    paintGround()
+
+    function draw(now) {
+      if (!field || !running) return
+      var sized = paintGround()
+      var markBox = boxOf(mark, sized.origin, sized.scale)
+      if (markBox.w < 1 || markBox.h < 1) return
+      if (fieldSize.w !== sized.width || fieldSize.h !== sized.height) {
+        field.api.engine_resize(field.ptr, sized.width, sized.height)
+        fieldSize = { w: sized.width, h: sized.height }
       }
-      var markBox = boxOf(mark, origin, scale)
       field.api.engine_pointer(field.ptr, cursor.x, cursor.y, cursor.inside)
       field.api.engine_clear_quiet(field.ptr)
-      var navBox = boxOf(nav, origin, scale)
-      field.api.engine_push_quiet(field.ptr, navBox.x, navBox.y, navBox.w, navBox.h)
-      field.api.engine_frame(field.ptr, now, markBox.x, markBox.y, markBox.w, markBox.h, reduced ? 1 : 0)
+      var zones = root.querySelectorAll('[data-rust-nav], [data-rust-quiet]')
+      for (var i = 0; i < zones.length; i += 1) {
+        var box = boxOf(zones[i], sized.origin, sized.scale)
+        if (zones[i].hasAttribute('data-rust-quiet')) {
+          var insetX = box.w * 0.05
+          var insetY = box.h * 0.05
+          box.x += insetX
+          box.y += insetY
+          box.w -= insetX * 2
+          box.h -= insetY * 2
+        }
+        field.api.engine_push_quiet(field.ptr, box.x, box.y, box.w, box.h)
+      }
+      var hold = reduced || (window.__pestyRustIntro && !primed) ? 1 : 0
+      field.api.engine_frame(field.ptr, now, markBox.x, markBox.y, markBox.w, markBox.h, hold)
+      primed = true
+      window.__pestyRustIntro = true
       var pix = field.api.engine_pixels(field.ptr)
       var len = field.api.engine_byte_len(field.ptr)
       var fw = field.api.engine_width(field.ptr)
@@ -171,7 +134,8 @@ export const rustHeaderBoot = `
         var bytes = new Uint8ClampedArray(field.api.memory.buffer, pix, len)
         ctx.putImageData(new ImageData(bytes, fw, fh), 0, 0)
       }
-      tuneInk(ctx, width, height, markBox)
+      tuneInk(ctx, sized.width, sized.height, markBox)
+      document.documentElement.setAttribute('data-rust-live', '1')
     }
 
     function loop(now) {
@@ -220,24 +184,34 @@ export const rustHeaderBoot = `
       if (field) field.api.engine_replay(field.ptr, performance.now())
     })
 
-    loadWasm('/engine.wasm?v=0.1.7').then(function (instance) {
+    loadWasm('/engine.wasm?v=0.1.9').then(function (instance) {
+      if (!running || !root.isConnected) return
       var api = instance.exports
       field = { api: api, ptr: api.engine_new() }
       setHex(api, field.ptr, 0, '#c900c4')
       setHex(api, field.ptr, 1, '#fafafa')
-      draw(performance.now())
-      raf = window.requestAnimationFrame(loop)
-      return satoshiMark('pesty-sh').then(function (drawn) {
-        if (!drawn) return
-        var prep = api.engine_mark_prepare(field.ptr, drawn.cols, drawn.rows)
-        if (!prep) return
-        new Uint8Array(api.memory.buffer, prep, drawn.cols * drawn.rows).set(drawn.cells)
-        api.engine_mark_commit(field.ptr)
-        mark.style.aspectRatio = api.engine_logo_cols(field.ptr) + ' / ' + api.engine_logo_rows(field.ptr)
-        var fallback = root.querySelector('[data-rust-fallback]')
-        if (fallback) fallback.hidden = true
-      })
+      mark.style.aspectRatio = api.engine_logo_cols(field.ptr) + ' / ' + api.engine_logo_rows(field.ptr)
+      var stable = 0
+      var lastKey = ''
+      function arm(now) {
+        if (!running || !root.isConnected) return
+        var origin = canvas.getBoundingClientRect()
+        var key = Math.round(origin.width) + 'x' + Math.round(origin.height)
+        var box = boxOf(mark, origin, dpr())
+        if (origin.width >= 2 && origin.height >= 2 && box.w >= 1 && box.h >= 1 && key === lastKey) stable += 1
+        else stable = 0
+        lastKey = key
+        paintGround()
+        if (stable < 2) {
+          raf = window.requestAnimationFrame(arm)
+          return
+        }
+        draw(now)
+        raf = window.requestAnimationFrame(loop)
+      }
+      raf = window.requestAnimationFrame(arm)
     }).catch(function () {
+      running = false
       window.cancelAnimationFrame(raf)
     })
   }
@@ -246,7 +220,6 @@ export const rustHeaderBoot = `
     var root = document.getElementById('rust-header')
     if (!root) return
     boot(root)
-    if (root.dataset.rustBoot === '1') observer.disconnect()
   }
   var observer = new MutationObserver(scan)
   observer.observe(document.documentElement, { childList: true, subtree: true })

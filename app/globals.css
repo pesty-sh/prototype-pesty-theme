@@ -108,6 +108,9 @@ html.mouse-type #rust-header,
 html.mouse-type #rust-header * {
   cursor: auto;
 }
+html[data-rust-live] #rust-header [data-rust-fallback] {
+  display: none;
+}
   .mouse-cell {
     position: fixed;
     top: 0;

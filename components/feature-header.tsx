@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { siteConfig } from '@/projects.config'
 import { Field } from '@/lib/pixel-field'
-import { satoshiMark } from '@/lib/satoshi-mark'
 import { BootLog } from './boot-log'
 import { PixelHeader } from './pixel-header'
 import { PixelWordmark } from './pixel-wordmark'
@@ -86,7 +85,7 @@ export function FeatureHeader() {
     let lastDraw = 0
     let reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let cursor = { x: 0, y: 0, inside: false }
-    const quiet = [nav]
+    const quiet = [nav, ...root.querySelectorAll<HTMLElement>('[data-rust-quiet]')]
 
     const dpr = () => Math.min(window.devicePixelRatio || 1, 2)
     const boxOf = (el: Element, origin: DOMRect, scale: number) => {
@@ -109,18 +108,24 @@ export function FeatureHeader() {
         canvas.width = width
         canvas.height = height
         ctx.imageSmoothingEnabled = false
+        ctx.fillStyle = '#fafafa'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
       }
       if (fieldSize.w !== width || fieldSize.h !== height) {
         field.resize(width, height)
         fieldSize = { w: width, h: height }
       }
       const markBox = boxOf(mark, origin, scale)
+      if (markBox.w < 1 || markBox.h < 1) return
       field.pointer(cursor.x, cursor.y, cursor.inside)
       field.clearQuiet()
       const pad = QUIET_PAD * scale
       for (const el of quiet) {
         const box = boxOf(el, origin, scale)
-        field.pushQuiet(box.x - pad, box.y - pad, box.w + pad * 2, box.h + pad * 2)
+        const inset = el.hasAttribute('data-rust-quiet') ? 0.05 : 0
+        const insetX = box.w * inset
+        const insetY = box.h * inset
+        field.pushQuiet(box.x + insetX - pad, box.y + insetY - pad, box.w - insetX * 2 + pad * 2, box.h - insetY * 2 + pad * 2)
       }
       field.frame(now, markBox.x, markBox.y, markBox.w, markBox.h, reduced)
       field.blit(ctx)
@@ -172,26 +177,18 @@ export function FeatureHeader() {
     }
 
     let cancel = false
-    Field.load('/engine.wasm?v=0.1.7')
+    Field.load('/engine.wasm?v=0.1.9')
       .then(async (loaded) => {
         if (cancel) return
         field = loaded
         fieldRef.current = loaded
         loaded.setHex(0, '#c900c4')
         loaded.setHex(1, '#fafafa')
+        mark.style.aspectRatio = `${loaded.cols} / ${loaded.rows}`
+        document.documentElement.setAttribute('data-rust-live', '1')
+        setEngine('wasm')
         draw(performance.now())
         raf = window.requestAnimationFrame(loop)
-        try {
-          const drawn = await satoshiMark(TITLE)
-          if (cancel || !drawn || !loaded.setMark(drawn.cells, drawn.cols, drawn.rows)) {
-            setEngine('glyphs')
-            return
-          }
-          mark.style.aspectRatio = `${loaded.cols} / ${loaded.rows}`
-          setEngine('wasm')
-        } catch {
-          if (!cancel) setEngine('glyphs')
-        }
       })
       .catch(() => {
         if (!cancel) setEngine('glyphs')
@@ -233,7 +230,7 @@ export function FeatureHeader() {
             type="button"
             aria-label="Replay pesty-sh"
             data-rust-mark
-            className="pointer-events-auto relative w-[min(62vw,28rem)] bg-transparent"
+            className="pointer-events-auto relative w-[min(92vw,56rem)] bg-transparent"
             style={{ aspectRatio: '80 / 21' }}
             onClick={() => {
               if (replayedRef.current) {
@@ -253,10 +250,11 @@ export function FeatureHeader() {
           </button>
         </div>
         <div className="pointer-events-auto px-3 pb-3 md:px-4">
+          <div data-rust-quiet className="mx-auto w-fit max-w-full">
           <Tile
             active
             labelledBy="header-pitch"
-            className="mx-auto w-fit max-w-full"
+            className="max-w-full"
             bodyClassName="grid gap-0 p-0 md:grid-cols-[auto_auto]"
             style={{ backgroundColor: 'color-mix(in srgb, var(--background) 92%, transparent)' }}
           >
@@ -307,6 +305,7 @@ export function FeatureHeader() {
               <BootLog embedded />
             </div>
           </Tile>
+          </div>
         </div>
       </div>
     </section>
