@@ -57,6 +57,7 @@ export const projects: ProjectConfig[] = [
   {
     repo: 'prototype-event-voter',
     tagline: 'Prototype app for event suggestions.',
+    homepage: 'https://event-voter.vercel.app/',
   },
   {
     repo: 'prototype-pesty-header',
