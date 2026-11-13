@@ -90,6 +90,7 @@ export async function llmsFullIndex() {
       `- Source: ${project.url}`,
       project.language ? `- Language: ${project.language}` : '',
       project.license ? `- License: ${project.license}` : '',
+      project.homepage ? `- Demo: ${project.homepage}` : '',
       project.note ? `- Note: ${project.note}` : '',
     ].filter(Boolean)
     if (project.channels.length > 0) {

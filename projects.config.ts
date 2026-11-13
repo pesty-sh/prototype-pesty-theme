@@ -20,6 +20,8 @@ export type ProjectConfig = {
   channels?: InstallChannel[]
   /** Short warning shown on the project page */
   note?: string
+  /** Live demo. Overrides the GitHub homepage when set. */
+  homepage?: string
   /** Image shown beside the project title. Path in /public. */
   mark?: string
   markAlt?: string
@@ -59,5 +61,10 @@ export const projects: ProjectConfig[] = [
   {
     repo: 'prototype-pesty-header',
     tagline: 'Pixel header tutorial: pointer, motion, and the pesty.sh wordmark.',
+  },
+  {
+    repo: 'prototype-warehouse-picker-tool',
+    tagline: '3D warehouse picker. Walk bays, shelves, and compartments.',
+    homepage: 'https://v0-warehouse-picker-tool.vercel.app/',
   },
 ]

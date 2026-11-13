@@ -93,6 +93,12 @@ export const seo = {
       description: 'A Rust and WebAssembly pixel header: pointer, motion, and the pesty.sh wordmark.',
       keywords: ['WebAssembly', 'pixel header', 'Rust wasm'],
     },
+    'prototype-warehouse-picker-tool': {
+      title: '3D warehouse picker',
+      description:
+        'A 3D warehouse picker for inventory. Move through bays, shelves, and compartments to find what you are picking.',
+      keywords: ['warehouse picker', 'inventory', '3D warehouse'],
+    },
   } satisfies Record<string, ProjectSeo>,
 
   /**

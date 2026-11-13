@@ -84,7 +84,8 @@ export async function getReadmeHtml(repo: string) {
 
 function toProject(slug: string, repo: GhRepo | undefined, release: Release | null): Project {
   const cfg = configured.find((p) => p.repo === slug)
-  const homepage = repo?.homepage && !repo.homepage.replace(/\/$/, '').endsWith('pesty.sh') ? repo.homepage : null
+  const fromGitHub = repo?.homepage && !repo.homepage.replace(/\/$/, '').endsWith('pesty.sh') ? repo.homepage : null
+  const homepage = cfg?.homepage ?? fromGitHub
   return {
     slug,
     name: slug,
