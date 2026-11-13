@@ -26,12 +26,12 @@ export function Tile({
   return (
     <As id={id} aria-labelledby={labelledBy} data-active={active} className={cn('tile flex flex-col', className)}>
       {title && (
-        <div className="flex items-center justify-between gap-3 border-b border-border/40 px-4 py-1.5 font-mono text-xs text-muted-foreground">
+        <div className="flex items-center justify-between gap-3 border-b border-border/40 px-6 py-1.5 font-mono text-xs text-muted-foreground">
           <span className="truncate">{title}</span>
           {meta && <span className="shrink-0">{meta}</span>}
         </div>
       )}
-      <div className={cn('flex flex-1 flex-col', bodyClassName)}>{children}</div>
+      <div className={cn('panel-body flex flex-1 flex-col', bodyClassName)}>{children}</div>
     </As>
   )
 }

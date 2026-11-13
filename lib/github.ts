@@ -46,6 +46,8 @@ export type Project = {
   topics: string[]
   channels: InstallChannel[]
   note?: string
+  mark?: string
+  markAlt?: string
   release: Release | null
 }
 
@@ -93,6 +95,8 @@ function toProject(slug: string, repo: GhRepo | undefined, release: Release | nu
     topics: repo?.topics ?? [],
     channels: cfg?.channels ?? [],
     note: cfg?.note,
+    mark: cfg?.mark,
+    markAlt: cfg?.markAlt,
     release,
   }
 }

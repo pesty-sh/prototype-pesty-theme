@@ -1,17 +1,18 @@
 import Image from 'next/image'
 import { siteConfig } from '@/projects.config'
 import { Tile } from './tile'
+import { TypeTitle } from './type-title'
 
 const CREED: [string, string][] = [
   ['what can we build?', 'anything.'],
   ['what can we fix?', 'everything.'],
-  ['what will it cost?', 'our dignity.'],
+  ['what will it cost?', 'coffee.'],
 ]
 
 export function Hero() {
   return (
     <Tile title="~/pesty — README.md" meta="NORMAL" active className="md:col-span-2" labelledBy="pitch">
-      <div className="flex flex-col gap-8 px-5 py-8 md:px-8 md:py-10">
+      <div className="flex flex-col gap-8">
         <Image
           src="/brand/pesty-wordmark.png"
           alt="Pesty — pesty.sh"
@@ -20,10 +21,14 @@ export function Hero() {
           priority
           className="h-auto w-44 md:w-56"
         />
-        <h1 id="pitch" className="max-w-2xl text-4xl leading-[1.05] tracking-tight text-balance md:text-6xl">
-          {siteConfig.bio}
-          <span className="cursor ml-2" aria-hidden="true" />
-        </h1>
+        <TypeTitle
+          as="h1"
+          id="pitch"
+          text={siteConfig.bio}
+          persistCursor
+          speed={22}
+          className="max-w-2xl text-4xl leading-[1.05] tracking-tight md:text-6xl"
+        />
         <dl className="flex flex-col gap-1 font-mono text-sm">
           {CREED.map(([q, a]) => (
             <div key={q} className="flex flex-wrap gap-x-3">

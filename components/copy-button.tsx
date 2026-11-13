@@ -30,14 +30,18 @@ export function CopyButton({ value, label = 'Copy command' }: { value: string; l
 
 export function CommandLine({ command }: { command: string }) {
   return (
-    <div className="flex items-start justify-between gap-3 bg-surface px-3 py-2 font-mono text-sm">
-      <code className="min-w-0 overflow-x-auto whitespace-pre">
-        <span className="select-none text-border" aria-hidden="true">
-          {'$ '}
-        </span>
-        {command}
-      </code>
-      <CopyButton value={command} />
+    <div className="flex min-w-0 items-stretch bg-surface font-mono text-sm">
+      <div className="min-w-0 flex-1 overflow-x-auto px-3 py-2" tabIndex={0}>
+        <code className="whitespace-nowrap">
+          <span className="select-none text-border" aria-hidden="true">
+            {'$ '}
+          </span>
+          {command}
+        </code>
+      </div>
+      <div className="flex shrink-0 items-center border-l border-border/40 px-1">
+        <CopyButton value={command} />
+      </div>
     </div>
   )
 }

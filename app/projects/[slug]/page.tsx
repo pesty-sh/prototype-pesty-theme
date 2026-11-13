@@ -4,9 +4,12 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { InstallChannels } from '@/components/install-channels'
 import { ReleaseDownloads } from '@/components/project/release-downloads'
+import { ProjectMark } from '@/components/project-mark'
+import { ReadmeBody } from '@/components/readme-body'
 import { SiteFooter } from '@/components/site-footer'
 import { Tile } from '@/components/tile'
 import { TopBar } from '@/components/top-bar'
+import { TypeTitle } from '@/components/type-title'
 import { getProject, getProjectSlugs, getReadmeHtml } from '@/lib/github'
 import { formatDate } from '@/lib/release-assets'
 
@@ -44,7 +47,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[slug
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-2 px-2 pb-2 md:gap-3 md:px-3">
         <div className="grid gap-2 md:grid-cols-3 md:gap-3">
           <Tile title={`~/${project.slug}`} meta="NORMAL" active className="md:col-span-2" labelledBy="project-title">
-            <div className="flex flex-col gap-6 px-5 py-8 md:px-8">
+            <div className="flex flex-col gap-6">
               <Link
                 href="/#projects"
                 className="flex w-fit items-center gap-1.5 font-mono text-xs text-muted-foreground hover:text-accent"
@@ -52,9 +55,17 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[slug
                 <ArrowLeft className="size-3.5" aria-hidden="true" />
                 all projects
               </Link>
-              <h1 id="project-title" className="text-5xl leading-none tracking-tight md:text-7xl">
-                {project.name}
-              </h1>
+              <div className="flex items-end gap-5">
+                <ProjectMark slug={project.slug} size={112} />
+                <TypeTitle
+                  as="h1"
+                  id="project-title"
+                  text={project.name}
+                  persistCursor
+                  speed={36}
+                  className="text-5xl leading-none tracking-tight md:text-7xl"
+                />
+              </div>
               <p className="max-w-xl text-lg leading-relaxed text-pretty">{project.tagline}</p>
               {project.note && (
                 <p className="flex max-w-xl items-start gap-2 border-l-2 border-accent bg-surface px-3 py-2 text-sm leading-relaxed">
@@ -94,7 +105,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[slug
           </Tile>
 
           <Tile title="stat" meta={project.slug}>
-            <dl className="grid grid-cols-[6rem_1fr] gap-x-4 gap-y-2 px-4 py-5 font-mono text-sm">
+            <dl className="grid grid-cols-[6rem_1fr] gap-x-4 gap-y-2 font-mono text-sm">
               {facts.map(([k, v]) => (
                 <div key={k} className="contents">
                   <dt className="text-muted-foreground">{k}</dt>
@@ -103,7 +114,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[slug
               ))}
             </dl>
             {project.topics.length > 0 && (
-              <ul className="flex flex-wrap gap-2 border-t border-border/40 px-4 py-3 font-mono text-xs">
+              <ul className="flex flex-wrap gap-2 border-t border-border/40 pt-4 font-mono text-xs">
                 {project.topics.map((t) => (
                   <li key={t} className="border border-border px-2 py-0.5 text-muted-foreground">
                     {t}
@@ -127,10 +138,13 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[slug
           labelledBy="downloads-title"
           className="scroll-mt-4"
         >
-          <div className="flex flex-col gap-6 px-5 py-6 md:px-8">
-            <h2 id="downloads-title" className="text-3xl tracking-tight">
-              {release ? `Downloads — ${release.tag_name}` : 'Downloads'}
-            </h2>
+          <div className="flex min-w-0 flex-col gap-6">
+            <TypeTitle
+              as="h2"
+              id="downloads-title"
+              text={release ? `Downloads — ${release.tag_name}` : 'Downloads'}
+              className="text-3xl tracking-tight"
+            />
             {release ? (
               <ReleaseDownloads release={release} />
             ) : (
@@ -147,10 +161,8 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[slug
 
         {project.channels.length > 0 && (
           <Tile title="~/install — zsh" labelledBy="install-title">
-            <div className="flex flex-col gap-6 px-5 py-6 md:px-8">
-              <h2 id="install-title" className="text-3xl tracking-tight">
-                Install with a package manager
-              </h2>
+            <div className="flex min-w-0 flex-col gap-6">
+              <TypeTitle as="h2" id="install-title" text="Install with a package manager" className="text-3xl tracking-tight" />
               <InstallChannels pkg={project.slug} />
             </div>
           </Tile>
@@ -158,12 +170,12 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[slug
 
         {readme && (
           <Tile title="README.md" meta="github" labelledBy="readme-title">
-            <div className="px-5 py-6 md:px-8">
+            <div>
               <h2 id="readme-title" className="sr-only">
                 README
               </h2>
               {/* HTML is rendered and sanitized by GitHub's README API */}
-              <div className="readme max-w-3xl" dangerouslySetInnerHTML={{ __html: readme }} />
+              <ReadmeBody html={readme} />
             </div>
           </Tile>
         )}

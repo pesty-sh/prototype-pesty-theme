@@ -20,6 +20,9 @@ export type ProjectConfig = {
   channels?: InstallChannel[]
   /** Short warning shown on the project page */
   note?: string
+  /** Image shown beside the project title. Path in /public. */
+  mark?: string
+  markAlt?: string
 }
 
 export const siteConfig = {

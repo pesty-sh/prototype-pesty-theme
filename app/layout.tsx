@@ -2,6 +2,8 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { JetBrains_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
+import { MouseType } from '@/components/mouse-type'
+import { HashScroll } from '@/components/top-bar'
 import { palette, paletteToCssVars } from '@/theme.config'
 import { siteConfig } from '@/projects.config'
 import './globals.css'
@@ -62,6 +64,8 @@ export default function RootLayout({
       style={paletteToCssVars(palette) as React.CSSProperties}
     >
       <body className="antialiased">
+        <HashScroll />
+        <MouseType />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

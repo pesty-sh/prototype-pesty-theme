@@ -9,7 +9,7 @@ export function BootLog({ projects }: { projects: Project[] }) {
     ...projects
       .filter((p) => p.release)
       .map((p) => ({ text: `mount ${p.name}`, status: p.release!.tag_name })),
-    { text: 'unloading dignity', status: 'gone', hot: true },
+    { text: 'quoting the work', status: 'coffee', hot: true },
     { text: 'telemetry', status: 'none', hot: true },
     { text: 'meetings', status: 'none', hot: true },
     { text: 'ready for anything.' },
@@ -17,7 +17,7 @@ export function BootLog({ projects }: { projects: Project[] }) {
 
   return (
     <Tile title="journalctl -f" meta={`${lines.length} lines`}>
-      <div role="log" aria-label="Boot log" className="flex flex-col px-4 py-4 font-mono text-sm leading-6">
+      <div role="log" aria-label="Boot log" className="flex flex-col font-mono text-sm leading-6">
         {lines.map((line, i) => (
           <p key={line.text} className="boot-line text-muted-foreground" style={{ animationDelay: `${i * 160}ms` }}>
             <span className="text-border" aria-hidden="true">

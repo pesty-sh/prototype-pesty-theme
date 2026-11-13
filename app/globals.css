@@ -41,6 +41,10 @@
   --radius: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring;
@@ -63,6 +67,9 @@
   .tile {
     @apply border-2 border-border bg-background transition-colors;
   }
+  .panel-body {
+    @apply p-6 pb-8;
+  }
   .tile:hover,
   .tile:focus-within,
   .tile[data-active='true'] {
@@ -76,6 +83,34 @@
     vertical-align: baseline;
     background: var(--accent);
     animation: blink 1.06s steps(1) infinite;
+  }
+
+  /* Undo with MouseType: html.mouse-type and .mouse-cell */
+  html.mouse-type,
+  html.mouse-type * {
+    cursor: none;
+  }
+  .mouse-cell {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 1ch;
+    height: 1em;
+    margin-top: -1em;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    line-height: 1;
+    white-space: pre;
+    pointer-events: none;
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+  .mouse-cell.is-caret:not(.is-moving) {
+    animation: blink 1.06s steps(1) infinite;
+  }
+  .mouse-cell.is-tail {
+    background: var(--accent);
+    opacity: 0;
   }
 
   .boot-line {
@@ -119,8 +154,12 @@
   .readme pre {
     @apply overflow-x-auto border border-border bg-surface px-4 py-3 font-mono text-sm leading-6;
   }
-  .readme pre code {
+  .readme pre code,
+  .readme .code-block code {
     @apply bg-transparent p-0;
+  }
+  .readme .code-block {
+    @apply mb-4;
   }
   .readme table {
     @apply block w-full overflow-x-auto border-collapse text-sm;
@@ -161,6 +200,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .cursor {
     animation: none;
   }
