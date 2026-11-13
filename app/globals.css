@@ -1,0 +1,93 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@theme inline {
+  --font-sans: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+}
+
+/* Omarchy "white" palette: paper, ink, graphite accent, selection gray */
+:root {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --muted: #f3f3f3;
+  --muted-foreground: #6e6e6e;
+  --accent: #6e6e6e;
+  --accent-foreground: #ffffff;
+  --border: #c0c0c0;
+  --ring: #000000;
+  --radius: 0;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+  body {
+    @apply bg-background text-foreground font-mono;
+  }
+  ::selection {
+    background: var(--border);
+    color: var(--foreground);
+  }
+}
+
+@layer components {
+  .cursor {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.95em;
+    vertical-align: baseline;
+    background: var(--foreground);
+    animation: blink 1.06s steps(1) infinite;
+  }
+
+  .boot-line {
+    opacity: 0;
+    animation: boot-in 0.01s linear forwards;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes boot-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    animation: none;
+  }
+  .boot-line {
+    animation: none;
+    opacity: 1;
+  }
+}
