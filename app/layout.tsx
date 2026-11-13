@@ -2,10 +2,14 @@ import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import { MouseType } from '@/components/mouse-type'
 import { HashScroll } from '@/components/top-bar'
+import { mouseTypeBoot } from '@/lib/mouse-type-boot'
 import { rustHeaderBoot } from '@/lib/rust-header-boot'
 import { typeTitleBoot } from '@/lib/type-title-boot'
+import { JsonLd } from '@/components/json-ld'
+import { siteJsonLd } from '@/lib/seo'
+import { release } from '@/lib/release'
+import { seo } from '@/seo.config'
 import { palette, paletteToCssVars } from '@/theme.config'
-import { siteConfig } from '@/projects.config'
 import './globals.css'
 
 const satoshi = localFont({
@@ -32,15 +36,32 @@ const jetbrainsMono = localFont({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://pesty.sh'),
-  title: { default: 'Pesty — pesty.sh', template: '%s — pesty.sh' },
-  description: siteConfig.bio,
+  metadataBase: new URL(seo.siteUrl),
+  title: { default: seo.title, template: seo.titleTemplate },
+  description: seo.description,
+  keywords: seo.keywords,
+  applicationName: seo.siteName,
+  other: { version: release },
+  authors: [{ name: seo.siteName, url: seo.siteUrl }],
+  creator: seo.siteName,
+  robots: { index: true, follow: true },
+  alternates: {
+    canonical: seo.siteUrl,
+    types: { 'text/markdown': new URL('/llms.txt', seo.siteUrl).toString() },
+  },
   openGraph: {
-    title: 'Pesty — pesty.sh',
-    description: siteConfig.bio,
-    url: 'https://pesty.sh',
-    siteName: 'pesty.sh',
-    images: ['/brand/pesty-wordmark.png'],
+    title: seo.title,
+    description: seo.description,
+    url: seo.siteUrl,
+    siteName: seo.siteName,
+    locale: seo.locale,
+    type: 'website',
+    images: seo.image ? [{ url: seo.image }] : undefined,
+  },
+  twitter: {
+    card: seo.twitterCard,
+    title: seo.title,
+    description: seo.description,
   },
   icons: {
     icon: [{ url: '/brand/pesty-mark.png', type: 'image/png' }],
@@ -65,7 +86,8 @@ export default function RootLayout({
       style={paletteToCssVars(palette) as React.CSSProperties}
     >
       <body className="antialiased">
-        <script dangerouslySetInnerHTML={{ __html: typeTitleBoot + '\n' + rustHeaderBoot }} />
+        <JsonLd data={siteJsonLd()} />
+        <script dangerouslySetInnerHTML={{ __html: typeTitleBoot + '\n' + rustHeaderBoot + '\n' + mouseTypeBoot }} />
         <HashScroll />
         <MouseType />
         {children}

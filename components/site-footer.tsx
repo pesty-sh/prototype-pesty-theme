@@ -3,7 +3,7 @@ import { siteConfig } from '@/projects.config'
 
 export function SiteFooter() {
   return (
-    <footer className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 font-mono text-xs text-muted-foreground md:px-4">
+    <footer className="flex flex-col items-center gap-2 px-3 py-3 text-center font-mono text-xs text-muted-foreground md:flex-row md:justify-between md:px-4 md:py-2 md:text-left">
       <span>
         <BrandHomeLink>pesty.sh</BrandHomeLink> · confidence. power. honor.
       </span>

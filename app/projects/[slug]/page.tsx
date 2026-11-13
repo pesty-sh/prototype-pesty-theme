@@ -10,7 +10,9 @@ import { SiteFooter } from '@/components/site-footer'
 import { Tile } from '@/components/tile'
 import { TopBar } from '@/components/top-bar'
 import { TypeTitle } from '@/components/type-title'
+import { JsonLd } from '@/components/json-ld'
 import { getProject, getProjectSlugs, getReadmeHtml } from '@/lib/github'
+import { projectMetadata, softwareJsonLd } from '@/lib/seo'
 import { formatDate } from '@/lib/release-assets'
 
 export const revalidate = 3600
@@ -22,8 +24,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<'/projects/[slug]'>): Promise<Metadata> {
   const { slug } = await params
   const project = await getProject(slug)
-  if (!project) return { title: 'Not found' }
-  return { title: project.name, description: project.tagline }
+  if (!project) return { title: 'Not found', robots: { index: false, follow: false } }
+  return projectMetadata(project)
 }
 
 export default async function ProjectPage({ params }: PageProps<'/projects/[slug]'>) {
@@ -42,7 +44,8 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[slug
   ]
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh w-full min-w-0 flex-col overflow-x-clip bg-background">
+      <JsonLd data={softwareJsonLd(project)} />
       <TopBar current="projects" />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-2 px-2 pb-2 md:gap-3 md:px-3">
         <div className="grid gap-2 md:grid-cols-3 md:gap-3">

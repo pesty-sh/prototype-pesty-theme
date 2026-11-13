@@ -16,6 +16,9 @@ export function MouseType() {
   useEffect(() => {
     const host = root.current
     if (!host) return
+    const page = window as Window & { __pestyMouseType?: boolean }
+    if (page.__pestyMouseType) return
+    page.__pestyMouseType = true
     if (!window.matchMedia('(pointer: fine)').matches) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
@@ -58,21 +61,23 @@ export function MouseType() {
       shadows.push({ el, born: now })
     }
 
-    const overHeader = (y: number) => {
+    const overHeader = (x: number, y: number) => {
       const header = document.getElementById('rust-header')
       if (!header) return false
       const rect = header.getBoundingClientRect()
-      return y >= rect.top && y <= rect.bottom
+      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
     }
 
     const onMove = (event: PointerEvent) => {
       const x = event.clientX
       const y = event.clientY
-      if (overHeader(y)) {
+      if (overHeader(x, y)) {
         caret.hidden = true
         px = -1
         py = -1
         acc = 0
+        for (let i = shadows.length - 1; i >= 0; i -= 1) shadows[i].el.remove()
+        shadows.length = 0
         return
       }
       const now = performance.now()
